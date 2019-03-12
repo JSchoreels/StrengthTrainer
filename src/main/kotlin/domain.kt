@@ -6,6 +6,7 @@ interface VolumeMeasurable {
     fun volume(): Double
 }
 
+
 data class Exercice (
         val type: String,
         val series: Int,
@@ -31,6 +32,7 @@ data class TrainingSession(
     override fun volume() : Double = workout.volume()
 }
 
+
 fun main(args: Array<String>) {
     val trainingSession = TrainingSession(
             Workout(
@@ -43,5 +45,5 @@ fun main(args: Array<String>) {
             LocalDate.of(2019, 3, 11)
     )
     println(trainingSession)
-    println("Volume is " + trainingSession.volume())
+    println("Volume is ${trainingSession.volume()}")
 }

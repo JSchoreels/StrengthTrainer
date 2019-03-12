@@ -1,5 +1,4 @@
 plugins {
-    `build-scan`
     kotlin("jvm") version "1.3.21"
 }
 

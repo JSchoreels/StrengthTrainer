@@ -60,7 +60,7 @@ class TrainingLog {
         }
     }
 
-    @Throws(TrainingSessionNotFoundException::class)
+    @Throws(TrainingSessionEditionFailureException::class)
     fun edit(oldTrainingSession: TrainingSession, newTrainingSession: TrainingSession) {
         try {
             remove(oldTrainingSession)
@@ -72,7 +72,7 @@ class TrainingLog {
             throw TrainingSessionEditionFailureException(exception)
         }
     }
-    
+
 
     fun get(date : LocalDate) : List<TrainingSession> {
         return trainingSessions.filter {

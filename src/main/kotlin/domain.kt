@@ -1,6 +1,9 @@
 package be.jschoreels.strengthtrainer
 
+import java.lang.IllegalArgumentException
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 interface VolumeMeasurable {
     fun volume(): Double
@@ -26,24 +29,55 @@ data class Workout(
 
 data class TrainingSession(
         val workout: Workout,
-        val date: LocalDate
-) : VolumeMeasurable {
+        val datetime: LocalDateTime
+) : VolumeMeasurable, Comparable<TrainingSession> {
 
     override fun volume() : Double = workout.volume()
+    override fun equals(other: Any?): Boolean = other is TrainingSession && datetime.equals(other.datetime)
+    override fun hashCode(): Int = datetime.hashCode()
+    override fun compareTo(other: TrainingSession) = datetime.compareTo(other.datetime)
 }
 
+class TrainingSessionDuplicatedException : IllegalArgumentException("Training Session already exists")
+class TrainingSessionNotFoundException : IllegalArgumentException("Training Session not found")
+class TrainingSessionEditionFailureException(e : Throwable): IllegalArgumentException("Training Session could not be edited", e)
 
-fun main(args: Array<String>) {
-    val trainingSession = TrainingSession(
-            Workout(
-                    listOf(
-                            Exercice(type = "Squat", series = 3, repetitionsPerSeries = 5, weightPerRepetitions = 80.0),
-                            Exercice("Press", 3, 5, 52.5),
-                            Exercice("Deadlift", 1,  5,  120.0)
-                    )
-            ),
-            LocalDate.of(2019, 3, 11)
-    )
-    println(trainingSession)
-    println("Volume is ${trainingSession.volume()}")
+class TrainingLog {
+
+    private val trainingSessions: SortedSet<TrainingSession> = sortedSetOf()
+
+    @Throws(TrainingSessionDuplicatedException::class)
+    fun add(trainingSession: TrainingSession) {
+        require(trainingSessions.add(trainingSession)) {
+            throw TrainingSessionDuplicatedException()
+        }
+    }
+
+    @Throws(TrainingSessionNotFoundException::class)
+    fun remove(trainingSession: TrainingSession) {
+        require(trainingSessions.remove(trainingSession)) {
+            throw TrainingSessionNotFoundException()
+        }
+    }
+
+    @Throws(TrainingSessionNotFoundException::class)
+    fun edit(oldTrainingSession: TrainingSession, newTrainingSession: TrainingSession) {
+        try {
+            remove(oldTrainingSession)
+            add(newTrainingSession)
+        } catch (exception: TrainingSessionDuplicatedException) {
+            add(oldTrainingSession)
+            throw TrainingSessionEditionFailureException(exception)
+        } catch (exception: TrainingSessionNotFoundException) {
+            throw TrainingSessionEditionFailureException(exception)
+        }
+    }
+    
+
+    fun get(date : LocalDate) : List<TrainingSession> {
+        return trainingSessions.filter {
+            trainingSession -> trainingSession.datetime.toLocalDate().equals(date)
+        }
+    }
+
 }
